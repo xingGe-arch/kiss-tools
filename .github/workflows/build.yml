@@ -1,7 +1,11 @@
 name: build
 
-# 打 v* 标签时自动打包两个 exe 并作为 Release 附件上传；也可在 Actions 页面手动触发。
-# 注意：构建产物在上传前统一改名为 ASCII（GitHub 的上传接口会把非 ASCII 文件名改写为 default.exe）。
+# 打 v* 标签时自动打包并作为 Release 附件上传；也可在 Actions 页面手动触发。
+#
+# 产物两类：
+#   1) *-win-x64.zip  —— onedir（文件夹）版，推荐：没有自解压 stub，不会被 Defender 在下载时误拦
+#   2) KissScan.exe / PortScan.exe —— 单文件版，方便但容易被误判为 Trojan:Win32/Wacatac.B!ml
+# 所有产物在上传前统一改名为 ASCII（GitHub 上传接口会把非 ASCII 文件名改写为 default.exe）。
 on:
   push:
     tags:
@@ -27,30 +31,40 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller pillow requests
 
-      - name: Build Kiss Scan
-        run: pyinstaller --noconfirm --clean --distpath out "Kiss Scan.spec"
-
-      - name: Build Port Scan
-        run: pyinstaller --noconfirm --clean --distpath out "端口扫描.spec"
-
-      - name: Normalize artifact names to ASCII
+      - name: Build single-file exes (PyInstaller specs)
         run: |
+          pyinstaller --noconfirm --clean --distpath out "Kiss Scan.spec"
+          pyinstaller --noconfirm --clean --distpath out "端口扫描.spec"
           Move-Item -Force 'out/Kiss Scan.exe' 'out/KissScan.exe'
           Move-Item -Force 'out/端口扫描.exe' 'out/PortScan.exe'
+
+      - name: Build onedir folders (recommended, fewer AV false positives)
+        run: |
+          pyinstaller --noconfirm --clean --onedir --console --noupx --name KissScan --icon assets/icon.jpg --distpath out-dir --workpath work-dir "Kiss Scan.py"
+          pyinstaller --noconfirm --clean --onedir --console --noupx --name PortScan --icon assets/icon.jpg --distpath out-dir --workpath work-dir "端口扫描.py"
+
+      - name: Package zips
+        run: |
+          Compress-Archive -Path 'out-dir/KissScan/*' -DestinationPath 'out/KissScan-win-x64.zip' -Force
+          Compress-Archive -Path 'out-dir/PortScan/*' -DestinationPath 'out/PortScan-win-x64.zip' -Force
           Get-ChildItem out | Select-Object Name, Length
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: kiss-tools-windows-exe
-          path: out/*.exe
+          name: kiss-tools-windows
+          path: |
+            out/*.exe
+            out/*.zip
           if-no-files-found: error
 
-      - name: Attach executables to release
+      - name: Attach build outputs to release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: |
+            out/KissScan-win-x64.zip
+            out/PortScan-win-x64.zip
             out/KissScan.exe
             out/PortScan.exe
           generate_release_notes: true

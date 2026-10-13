@@ -8,9 +8,10 @@
 | **Kiss Scan** | 子域名爆破 + 存活探测 + 标题抓取 + ICP 备案查询 | **1581** 条子域名字典 | 15.5 MB |
 | **端口扫描** | top1000 端口扫描 + HTTP 指纹 + 服务名映射 | **774** 条端口→服务说明 | 15.5 MB |
 
-> **不想装 Python？** 直接去 [Releases](https://github.com/xingGe-arch/kiss-tools/releases) 下载打包好的单文件 exe：
-> `KissScan.exe`（Kiss Scan）与 `PortScan.exe`（端口扫描），双击即用。
-> 仓库内 `dist/` 目录也放着中文原名的 exe（`Kiss Scan.exe` / `端口扫描.exe`）。
+> **不想装 Python？** 直接去 [Releases](https://github.com/xingGe-arch/kiss-tools/releases) 下载：
+> - **推荐**：`KissScan-win-x64.zip` / `PortScan-win-x64.zip`（文件夹版，解压即用，**不会被杀软在下载时拦截**）
+> - 单文件版 `KissScan.exe` / `PortScan.exe`（双击即用，但 PyInstaller 单文件结构容易被 Defender
+>   误判为 `Trojan:Win32/Wacatac.B!ml` —— 详见 [杀软误报说明](docs/antivirus-false-positive.md)）
 
 ---
 
@@ -124,8 +125,16 @@ pyinstaller "端口扫描.spec"
 
 产物在 `dist/` 下。spec 中 `icon=['assets/icon.jpg']` 指向仓库内自带的图标，换成你自己的图片即可。
 
+**推荐改成文件夹版打包**（单文件版会被 Windows Defender 误判为 `Trojan:Win32/Wacatac.B!ml`，见
+[杀软误报说明](docs/antivirus-false-positive.md)）：
+
+```bash
+pyinstaller --noconfirm --clean --onedir --console --noupx --name KissScan --icon assets/icon.jpg "Kiss Scan.py"
+pyinstaller --noconfirm --clean --onedir --console --noupx --name PortScan --icon assets/icon.jpg "端口扫描.py"
+```
+
 > 打 `v*` 标签时，仓库自带的 GitHub Actions（`.github/workflows/build.yml`）会自动在 Windows runner 上
-> 重新构建两个 exe，并作为 Release 附件上传（产物统一命名为 `KissScan.exe` / `PortScan.exe`，
+> 构建**文件夹版 zip + 单文件 exe**，并作为 Release 附件上传（产物统一使用 ASCII 文件名，
 > 因为 GitHub 的上传接口会把非 ASCII 文件名改写掉）。
 
 ## 说明与已知限制
