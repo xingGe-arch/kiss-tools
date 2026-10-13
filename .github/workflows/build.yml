@@ -1,6 +1,7 @@
 name: build
 
 # 打 v* 标签时自动打包两个 exe 并作为 Release 附件上传；也可在 Actions 页面手动触发。
+# 注意：构建产物在上传前统一改名为 ASCII（GitHub 的上传接口会把非 ASCII 文件名改写为 default.exe）。
 on:
   push:
     tags:
@@ -32,8 +33,11 @@ jobs:
       - name: Build Port Scan
         run: pyinstaller --noconfirm --clean --distpath out "端口扫描.spec"
 
-      - name: List build output
-        run: Get-ChildItem -Recurse out | Select-Object FullName, Length
+      - name: Normalize artifact names to ASCII
+        run: |
+          Move-Item -Force 'out/Kiss Scan.exe' 'out/KissScan.exe'
+          Move-Item -Force 'out/端口扫描.exe' 'out/PortScan.exe'
+          Get-ChildItem out | Select-Object Name, Length
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -46,5 +50,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: out/*.exe
+          files: |
+            out/KissScan.exe
+            out/PortScan.exe
           generate_release_notes: true
