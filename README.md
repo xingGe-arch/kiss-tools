@@ -8,6 +8,10 @@
 | **Kiss Scan** | 子域名爆破 + 存活探测 + 标题抓取 + ICP 备案查询 | **1581** 条子域名字典 | 15.5 MB |
 | **端口扫描** | top1000 端口扫描 + HTTP 指纹 + 服务名映射 | **774** 条端口→服务说明 | 15.5 MB |
 
+> **不想装 Python？** 直接去 [Releases](https://github.com/xingGe-arch/kiss-tools/releases) 下载打包好的单文件 exe：
+> `KissScan.exe`（Kiss Scan）与 `PortScan.exe`（端口扫描），双击即用。
+> 仓库内 `dist/` 目录也放着中文原名的 exe（`Kiss Scan.exe` / `端口扫描.exe`）。
+
 ---
 
 ## 一、Kiss Scan（子域名爆破）
@@ -118,7 +122,11 @@ pyinstaller "Kiss Scan.spec"
 pyinstaller "端口扫描.spec"
 ```
 
-产物在 `dist/` 下。spec 中 `icon=['1.jpg']` 指向自定义图标，换成你自己的图片即可。
+产物在 `dist/` 下。spec 中 `icon=['assets/icon.jpg']` 指向仓库内自带的图标，换成你自己的图片即可。
+
+> 打 `v*` 标签时，仓库自带的 GitHub Actions（`.github/workflows/build.yml`）会自动在 Windows runner 上
+> 重新构建两个 exe，并作为 Release 附件上传（产物统一命名为 `KissScan.exe` / `PortScan.exe`，
+> 因为 GitHub 的上传接口会把非 ASCII 文件名改写掉）。
 
 ## 说明与已知限制
 
